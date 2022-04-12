@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 
-const requestUrl = 'https://api.hgbrasil.com/finance?format=json-cors&key=d5fdd914';
+const requestUrl =
+    'https://api.hgbrasil.com/finance?format=json-cors&key=d5fdd914';
 
 void main() async {
   //print(await getData());
@@ -12,14 +13,15 @@ void main() async {
   runApp(MaterialApp(
     home: const Home(),
     theme: ThemeData(
-      hintColor: Colors.amber,
-      primaryColor: Colors.white,
-      inputDecorationTheme: const InputDecorationTheme(
-        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
-        hintStyle: TextStyle(color: Colors.amber),
-      )
-    ),
+        hintColor: Colors.amber,
+        primaryColor: Colors.white,
+        inputDecorationTheme: const InputDecorationTheme(
+          enabledBorder:
+              OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+          focusedBorder:
+              OutlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
+          hintStyle: TextStyle(color: Colors.amber),
+        )),
     debugShowCheckedModeBanner: false,
   ));
 }
@@ -37,8 +39,46 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  
+  final realController = TextEditingController();
+  final dolarController = TextEditingController();
+  final euroController = TextEditingController();
+
   late double dolar;
   late double euro;
+
+  void _realChanged(String text) {
+    if(text.isEmpty) {
+      dolarController.text = '';
+      euroController.text = '';
+      return;
+    }
+    double real = double.parse(text);
+    dolarController.text = (real/dolar).toStringAsFixed(2);
+    euroController.text = (real/euro).toStringAsFixed(2);
+  }
+
+  void _dolarChanged(String text) {
+    if(text.isEmpty) {
+      realController.text = '';
+      euroController.text = '';
+      return;
+    }
+    double dolar = double.parse(text);
+    realController.text = (dolar * this.dolar).toStringAsFixed(2);
+    euroController.text = (dolar * this.dolar / euro).toStringAsFixed(2);
+  }
+
+  void _euroChanged(String text) {
+    if(text.isEmpty) {
+      dolarController.text = '';
+      realController.text = '';
+      return;
+    }
+    double euro = double.parse(text);
+    realController.text = (euro * this.euro).toStringAsFixed(2);
+    dolarController.text = (euro * this.euro / dolar).toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,47 +119,17 @@ class _HomeState extends State<Home> {
                     padding: const EdgeInsets.all(10.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: const [
-                        Icon(
+                      children: [
+                        const Icon(
                           Icons.monetization_on,
                           size: 150.0,
                           color: Colors.amber,
                         ),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Reais',
-                            labelStyle: TextStyle(color: Colors.amber),
-                            border: OutlineInputBorder(),
-                            prefixText: 'R\$'
-                          ),
-                          style: TextStyle(
-                            color: Colors.amber, fontSize: 25.0
-                          ),
-                        ),
-                        Divider(),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Dólares',
-                            labelStyle: TextStyle(color: Colors.amber),
-                            border: OutlineInputBorder(),
-                            prefixText: 'US\$'
-                          ),
-                          style: TextStyle(
-                            color: Colors.amber, fontSize: 25.0
-                          ),
-                        ),
-                        Divider(),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Euros',
-                            labelStyle: TextStyle(color: Colors.amber),
-                            border: OutlineInputBorder(),
-                            prefixText: '€'
-                          ),
-                          style: TextStyle(
-                            color: Colors.amber, fontSize: 25.0
-                          ),
-                        )
+                        buildTextField('Reais', 'R\$', realController, _realChanged),
+                        const Divider(),
+                        buildTextField('Dólares', 'US\$', dolarController, _dolarChanged),
+                        const Divider(),
+                        buildTextField('Euros', '€', euroController, _euroChanged),
                       ],
                     ),
                   );
@@ -130,18 +140,16 @@ class _HomeState extends State<Home> {
   }
 }
 
-/*
-
-  heme: ThemeData(
-      hintColor: Colors.amber,
-      primaryColor: Colors.white,
-      inputDecorationTheme: InputDecorationTheme(
-        enabledBorder:
-            OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-        focusedBorder:
-            OutlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
-        hintStyle: TextStyle(color: Colors.amber),
-      )),
-));
-
-*/
+Widget buildTextField(String label, String prefix, TextEditingController controller, Function(String text) f) {
+  return TextField(
+    controller: controller,
+    decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.amber),
+        border: const OutlineInputBorder(),
+        prefixText: prefix),
+    style: const TextStyle(color: Colors.amber, fontSize: 25.0),
+    onChanged: f,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  );
+}
